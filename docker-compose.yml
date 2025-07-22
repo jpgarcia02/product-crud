@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: products_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-juangarcia02}
+      POSTGRES_DB: ${DB_NAME:-products_db}
+    ports:
+      - "5434:5432"   # host 5434 -> container 5432 (evita conflicto con tu PostgreSQL local)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: products_api
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db          # nombre del servicio
+      DB_PORT: 5432        # puerto interno del contenedor de postgres
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-juangarcia02}
+      DB_NAME: ${DB_NAME:-products_db}
+    ports:
+      - "3000:3000"        # host 3000 -> container 3000
+
+volumes:
+  pgdata:
